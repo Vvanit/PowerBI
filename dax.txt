@@ -1,0 +1,20 @@
+lapse_count=
+var active_c = SELECTCOLUMNS(FILTER(temp_bi_master_view,temp_bi_master_view[flag_p12]=1 && temp_bi_master_view[source]="member"),"customer_code",temp_bi_master_view[customer_code])
+var eom = CALCULATE(max(temp_bi_master_view[eom]),ALLEXCEPT(temp_bi_master_view,temp_bi_master_view[month_name]))
+return
+calculate(DISTINCTCOUNT('growth_panpuri.leads'[customer_id]),filter('growth_panpuri.leads',not 'growth_panpuri.leads'[customer_id] in active_c && 'growth_panpuri.leads'[member_startdate]<=eom))
+
+
+campaign_sales_score = 
+var cus = VALUES(bi_campaign_analytics_tx[customer_code])
+var in_sent = SUMMARIZE(filter(bi_campaign_analytics_tx,bi_campaign_analytics_tx[flag_in_period]=1 && bi_campaign_analytics_tx[customer_code] in cus),bi_campaign_analytics_tx[order_no],"Sales",sum(bi_campaign_analytics_tx[net_sales]))
+var a = AVERAGEX(in_sent,[Sales])
+var out_sent = SUMMARIZE(filter(bi_campaign_analytics_tx,bi_campaign_analytics_tx[flag_in_period]=0 &&bi_campaign_analytics_tx[campaign_start]>=bi_campaign_analytics_tx[order_date] && bi_campaign_analytics_tx[customer_code] in cus),bi_campaign_analytics_tx[order_no],"Sales",sum(bi_campaign_analytics_tx[net_sales])) 
+var b = AVERAGEX(out_sent,[Sales])
+var in_nonsent = SUMMARIZE(filter(ALL(bi_campaign_analytics_tx),bi_campaign_analytics_tx[flag_in_period]=1 && not(bi_campaign_analytics_tx[customer_code]) in cus),bi_campaign_analytics_tx[order_no],"Sales",sum(bi_campaign_analytics_tx[net_sales]))
+var c = AVERAGEX(in_nonsent,[Sales])
+var out_nonsent = SUMMARIZE(filter(ALL(bi_campaign_analytics_tx),bi_campaign_analytics_tx[flag_in_period]=0 && bi_campaign_analytics_tx[campaign_start]>=bi_campaign_analytics_tx[order_date] && not(bi_campaign_analytics_tx[customer_code]) in cus),bi_campaign_analytics_tx[order_no],"Sales",sum(bi_campaign_analytics_tx[net_sales])) 
+var d = AVERAGEX(out_nonsent,[Sales])
+var s = ((a/b)-(c/d))*20
+return
+if(s>=10,10,if(s<0,0,s))  
