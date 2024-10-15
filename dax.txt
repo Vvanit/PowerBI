@@ -18,3 +18,10 @@ var d = AVERAGEX(out_nonsent,[Sales])
 var s = ((a/b)-(c/d))*20
 return
 if(s>=10,10,if(s<0,0,s))  
+
+
+flag_speaker = 
+var n = 'analytics_ctc event_year'[event_year]
+VAR s = SELECTCOLUMNS(filter('analytics_ctc master_session', 'analytics_ctc master_session'[event_name] = n), "session_id", 'analytics_ctc master_session'[session_id])
+var r = CALCULATE(COUNTROWS('analytics_ctc mapping_session_speaker'),filter('analytics_ctc mapping_session_speaker','analytics_ctc mapping_session_speaker'[session_id] IN s))
+return if(r>0,1,0)
